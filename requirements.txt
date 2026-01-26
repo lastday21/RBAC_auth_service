@@ -4,3 +4,4 @@ pytest
 SQLAlchemy
 pre-commit
 mypy
+httpx
