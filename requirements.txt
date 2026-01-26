@@ -3,3 +3,4 @@ uvicorn[standard]
 pytest
 SQLAlchemy
 pre-commit
+mypy
