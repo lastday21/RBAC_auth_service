@@ -29,8 +29,8 @@ jobs:
 
       - name: Pytest
         run: |
-          python -m pytest -q
+          pytest -q
 
       - name: Mypy
         run: |
-          python -m mypy --config-file mypy.ini
+          mypy --config-file mypy.ini
