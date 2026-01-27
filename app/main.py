@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from app.api.health import health_router
 from app.core.settings import get_settings
 from app.db.init_db import init_db
+from app.api.auth import auth_router
 
 
 @asynccontextmanager
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(health_router)
+app.include_router(auth_router)
 
 
 if __name__ == "__main__":
