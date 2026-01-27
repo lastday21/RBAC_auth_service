@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -20,6 +18,5 @@ class Settings(BaseSettings):
     jwt_access_ttl_minutes: int = Field(default=30, alias="JWT_ACCESS_TTL_MINUTES")
 
 
-@lru_cache
 def get_settings() -> Settings:
     return Settings()
