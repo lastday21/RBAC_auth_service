@@ -17,9 +17,18 @@ def get_engine() -> Engine:
     return create_engine(db_url)
 
 
-SessionLocal = sessionmaker(expire_on_commit=False)
+engine: Engine = get_engine()
+
+SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
 
 def get_db() -> Generator[Session, None, None]:
-    with SessionLocal(bind=get_engine()) as db:
+    db = SessionLocal()
+    try:
         yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
