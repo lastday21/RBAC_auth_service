@@ -8,6 +8,20 @@ jobs:
   lint-and-test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 5s
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,9 +41,13 @@ jobs:
         run: |
           pre-commit run -a
 
-      - name: Pytest
+      - name: Pytest (unit)
         run: |
-          pytest -q
+          pytest -q -m "not integration"
+
+      - name: Run integration tests
+        run: |
+          pytest -q -m integration
 
       - name: Mypy
         run: |
