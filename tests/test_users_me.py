@@ -1,11 +1,13 @@
-def _register_user(client, email: str, full_name: str = "Timur"):
-    payload = {
-        "full_name": full_name,
-        "email": email,
-        "password": "123",
-        "password_confirm": "123",
-    }
-    resp = client.post("/auth/register", json=payload)
+def _register_user(client, email="u@test.com", full_name="User", password="123"):
+    resp = client.post(
+        "/auth/register",
+        json={
+            "full_name": full_name,
+            "email": email,
+            "password": password,
+            "password_confirm": password,
+        },
+    )
     assert resp.status_code == 201
     return resp.json()
 
@@ -119,3 +121,42 @@ def test_soft_delete_blocks_user(client):
     resp = client.get("/users/me", headers=_auth_headers(token))
     assert resp.status_code == 401
     assert resp.json()["detail"] == "not authenticated"
+
+
+def test_logout_revokes_token_and_blocks_access(client):
+    _register_user(client, email="u1@test.com")
+    token = _login(client, email="u1@test.com")
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    resp = client.get("/users/me", headers=headers)
+    assert resp.status_code == 200
+
+    resp = client.post("/auth/logout", headers=headers)
+    assert resp.status_code == 204
+
+    resp = client.get("/users/me", headers=headers)
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "not authenticated"
+
+
+def test_logout_without_authorization_returns_401(client):
+    resp = client.post("/auth/logout")
+    assert resp.status_code == 401
+    assert resp.json()["detail"] == "not authenticated"
+
+
+def test_new_login_after_logout_works(client):
+    _register_user(client, email="u2@test.com")
+
+    token1 = _login(client, email="u2@test.com")
+    headers1 = {"Authorization": f"Bearer {token1}"}
+
+    resp = client.post("/auth/logout", headers=headers1)
+    assert resp.status_code == 204
+
+    token2 = _login(client, email="u2@test.com")
+    headers2 = {"Authorization": f"Bearer {token2}"}
+
+    resp = client.get("/users/me", headers=headers2)
+    assert resp.status_code == 200
