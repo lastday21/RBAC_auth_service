@@ -58,3 +58,16 @@ def update_me(
         raise HTTPException(status_code=409, detail="email already registered")
 
     return current_user
+
+
+@users_router.delete("/me", response_model=UserOut)
+def delete_me(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    current_user.is_active = False
+
+    db.add(current_user)
+    db.flush()
+
+    return current_user
