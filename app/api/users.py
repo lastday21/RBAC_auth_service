@@ -65,7 +65,7 @@ def delete_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    current_user.is_active = False
+    current_user.is_active = False  # type: ignore[assignment]
 
     db.add(current_user)
     db.flush()
