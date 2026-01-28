@@ -4,8 +4,11 @@ from sqlalchemy.exc import IntegrityError
 
 from app.db.session import get_db
 from app.models.user import User
-from app.core.password import hash_password
+from app.core.password import hash_password, verify_password
 from app.schemas.auth_schema import RegisterRequest, UserOut
+from app.schemas.auth_schema import LoginRequest, TokenResponse
+from app.core.jwt import create_access_token
+
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -37,3 +40,22 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="email already registered")
 
     return user
+
+
+@auth_router.post("/login", response_model=TokenResponse)
+def login(payload: LoginRequest, db: Session = Depends(get_db)):
+    email = payload.email.strip().lower()
+
+    user = db.query(User).filter(User.email == email).first()
+
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials"
+        )
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials"
+        )
+
+    token = create_access_token(user.id)
+    return {"access_token": token, "token_type": "bearer"}
