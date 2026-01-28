@@ -84,3 +84,24 @@ def test_users_me_patch_email_normalizes_to_lowercase(client):
     )
     assert resp.status_code == 200
     assert resp.json()["email"] == "new@test.com"
+
+
+def test_soft_delete_blocks_user(client):
+    resp = client.post(
+        "/auth/register",
+        json={
+            "full_name": "Timur",
+            "email": "timur@test.com",
+            "password": "123",
+            "password_confirm": "123",
+        },
+    )
+    assert resp.status_code == 201
+    user_id = resp.json()["id"]
+
+    resp = client.delete("/users/me", headers={"X-User-Id": str(user_id)})
+    assert resp.status_code == 200
+    assert resp.json()["is_active"] is False
+
+    resp = client.get("/users/me", headers={"X-User-Id": str(user_id)})
+    assert resp.status_code == 401
