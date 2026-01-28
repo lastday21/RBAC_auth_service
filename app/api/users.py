@@ -43,13 +43,13 @@ def update_me(
     current_user: User = Depends(get_current_user),
 ):
     if payload.full_name is not None:
-        current_user.full_name = payload.full_name
+        current_user.full_name = payload.full_name  # type: ignore[assignment]
 
     if payload.email is not None:
         email = payload.email.strip().lower()
         if not email:
             raise HTTPException(status_code=400, detail="email must not be empty")
-        current_user.email = email
+        current_user.email = email  # type: ignore[assignment]
 
     db.add(current_user)
     try:
