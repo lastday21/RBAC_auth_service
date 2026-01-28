@@ -17,3 +17,8 @@ class UserOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UpdateProfileRequest(BaseModel):
+    full_name: str | None = None
+    email: str = Field(default=None, min_length=3)
