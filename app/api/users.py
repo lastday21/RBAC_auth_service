@@ -43,13 +43,13 @@ def update_me(
     current_user: User = Depends(get_current_user),
 ):
     if payload.full_name is not None:
-        current_user.full_name = payload.full_name  # type: ignore[assignment]
+        current_user.full_name = payload.full_name
 
     if payload.email is not None:
         email = payload.email.strip().lower()
         if not email:
             raise HTTPException(status_code=400, detail="email must not be empty")
-        current_user.email = email  # type: ignore[assignment]
+        current_user.email = email
 
     db.add(current_user)
     try:
@@ -65,7 +65,7 @@ def delete_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    current_user.is_active = False  # type: ignore[assignment]
+    current_user.is_active = False
 
     db.add(current_user)
     db.flush()
