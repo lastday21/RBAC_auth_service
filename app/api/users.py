@@ -1,34 +1,13 @@
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.auth_jwt import get_current_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.auth_schema import UpdateProfileRequest, UserOut
 
 users_router = APIRouter(prefix="/users", tags=["users"])
-
-
-def get_current_user(
-    db: Session = Depends(get_db),
-    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
-) -> User:
-    if not x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="not authenticated"
-        )
-    try:
-        user_id = int(x_user_id)
-    except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="not authenticated"
-        )
-    user = db.get(User, user_id)
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="not authenticated"
-        )
-    return user
 
 
 @users_router.get("/me", response_model=UserOut)
