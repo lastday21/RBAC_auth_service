@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from app.db.session import get_db
 from app.models.user import User
 from app.core.password import hash_password
-from app.schemas.auth import RegisterRequest, UserOut
+from app.schemas.auth_schema import RegisterRequest, UserOut
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
