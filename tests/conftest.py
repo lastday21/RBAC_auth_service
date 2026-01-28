@@ -14,6 +14,7 @@ from app.main import app  # noqa: E402
 from app.db.base import Base  # noqa: E402
 from app.db.session import get_db  # noqa: E402
 from app.models.user import User  # noqa: F401, E402
+from app.models.revoked_token import RevokedToken  # noqa: F401, E402
 
 
 engine = create_engine(
