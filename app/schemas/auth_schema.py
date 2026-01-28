@@ -21,4 +21,4 @@ class UserOut(BaseModel):
 
 class UpdateProfileRequest(BaseModel):
     full_name: str | None = None
-    email: str = Field(default=None, min_length=3)
+    email: str | None = Field(default=None, min_length=3)
