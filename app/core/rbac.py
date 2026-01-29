@@ -70,6 +70,38 @@ def has_permission(
     return False
 
 
+def has_all_permission(db: Session, user: User, resource: str, action: Action) -> bool:
+    element = db.query(BusinessElement).filter(BusinessElement.code == resource).first()
+    if not element:
+        return False
+
+    roles_id_rows = db.query(UserRole).filter(UserRole.user_id == user.id).all()
+    roles_id = [row.role_id for row in roles_id_rows]
+    if not roles_id:
+        return False
+
+    rules = (
+        db.query(AccessRoleRule)
+        .filter(
+            AccessRoleRule.role_id.in_(roles_id),
+            AccessRoleRule.element_id == element.id,
+        )
+        .all()
+    )
+    if not rules:
+        return False
+
+    for rule in rules:
+        if action == "read" and rule.read_all_permission:
+            return True
+        if action == "update" and rule.update_all_permission:
+            return True
+        if action == "delete" and rule.delete_all_permission:
+            return True
+
+    return False
+
+
 def require_permission(resource: str, action: Action):
     def check_permission(
         db: Session = Depends(get_db), user: User = Depends(get_current_user)
