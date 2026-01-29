@@ -28,7 +28,7 @@ def has_permission(
         return False
 
     roles_id_rows = db.query(UserRole).filter(UserRole.user_id == user.id).all()
-    roles_id = [row for row in roles_id_rows]
+    roles_id = [row.role_id for row in roles_id_rows]
     if not roles_id:
         return False
 
