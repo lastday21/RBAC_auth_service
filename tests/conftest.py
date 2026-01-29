@@ -17,6 +17,8 @@ from app.models.user import User  # noqa: F401, E402
 from app.models.revoked_token import RevokedToken  # noqa: F401, E402
 from app.models.role import Role  # noqa: F401, E402
 from app.models.user_role import UserRole  # noqa: F401, E402
+from app.models.business_element import BusinessElement  # noqa: F401, E402
+from app.models.access_role_rule import AccessRoleRule  # noqa: F401, E402
 
 
 engine = create_engine(
@@ -53,3 +55,16 @@ def client(monkeypatch):
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def db_session():
+    db = TestingSessionLocal()
+    try:
+        yield db
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    finally:
+        db.close()
