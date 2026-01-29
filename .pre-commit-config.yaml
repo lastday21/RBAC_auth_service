@@ -33,11 +33,11 @@ repos:
         entry: python -m mypy --config-file=mypy.ini
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [pre-commit]
 
       - id: pytest
         name: pytest
         entry: python -m pytest -q
         language: system
         pass_filenames: false
-        stages: [pre-push]
+        stages: [pre-commit]
