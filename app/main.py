@@ -8,6 +8,7 @@ from app.db.init_db import init_db
 from app.api.auth import auth_router
 from app.api.users import users_router
 from app.api.admin import admin_router
+from app.api.mock import mock_router
 
 
 @asynccontextmanager
@@ -23,6 +24,7 @@ app.include_router(health_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(admin_router)
+app.include_router(mock_router)
 
 
 if __name__ == "__main__":
