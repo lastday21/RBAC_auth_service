@@ -1,12 +1,15 @@
 from typing import NoReturn
 
-from fastapi import Depends, Header, HTTPException, status
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from app.core.jwt import decode_access_token
 from app.db.session import get_db
 from app.models.revoked_token import RevokedToken
 from app.models.user import User
+
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def raise_not_authenticated() -> NoReturn:
@@ -16,22 +19,22 @@ def raise_not_authenticated() -> NoReturn:
     )
 
 
-def _get_bearer_token(authorization: str | None) -> str:
-    if not authorization:
+def _get_bearer_token(credentials: HTTPAuthorizationCredentials | None) -> str:
+    if credentials is None:
         raise_not_authenticated()
 
-    parts = authorization.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
+    token = credentials.credentials
+    if not token:
         raise_not_authenticated()
 
-    return parts[1]
+    return token
 
 
 def get_current_user(
     db: Session = Depends(get_db),
-    authorization: str | None = Header(default=None),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
 ) -> User:
-    token = _get_bearer_token(authorization)
+    token = _get_bearer_token(credentials)
 
     try:
         payload = decode_access_token(token)

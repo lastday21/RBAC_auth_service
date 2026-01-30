@@ -1,20 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timezone
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
 from app.core.auth_jwt import (
+    bearer_scheme,
     get_current_user,
     _get_bearer_token,
     raise_not_authenticated,
 )
+from app.core.jwt import create_access_token, decode_access_token
+from app.core.password import hash_password, verify_password
 from app.db.session import get_db
 from app.models.revoked_token import RevokedToken
 from app.models.user import User
-from app.core.password import hash_password, verify_password
-from app.schemas.auth_schema import RegisterRequest, UserOut
-from app.schemas.auth_schema import LoginRequest, TokenResponse
-from app.core.jwt import create_access_token, decode_access_token
+from app.schemas.auth_schema import (
+    LoginRequest,
+    RegisterRequest,
+    TokenResponse,
+    UserOut,
+)
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -53,11 +60,11 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     email = payload.email.strip().lower()
 
     user = db.query(User).filter(User.email == email).first()
-
     if not user or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials"
         )
+
     if not verify_password(payload.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials"
@@ -70,10 +77,10 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 @auth_router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 def logout(
     db: Session = Depends(get_db),
-    authorization: str | None = Header(default=None),
-    user: UserOut = Depends(get_current_user),
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    user: User = Depends(get_current_user),
 ):
-    token = _get_bearer_token(authorization)
+    token = _get_bearer_token(credentials)
 
     try:
         payload = decode_access_token(token)
