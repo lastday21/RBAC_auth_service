@@ -30,7 +30,7 @@ def _login_token(client, email: str, password: str = "123") -> str:
 
 
 def _auth_headers(token: str) -> dict[str, str]:
-    return {"Authorization": f"Bearer {token}"}
+    return {"authorization": f"Bearer {token}"}
 
 
 def _grant_admin_permissions(db_session, user_id: int):
@@ -76,6 +76,81 @@ def test_admin_roles_forbidden_without_permission(client):
 
     resp = client.get("/admin/roles", headers=_auth_headers(token))
     assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_admin_elements_requires_auth(client):
+    resp = client.get("/admin/elements")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_admin_elements_forbidden_without_permission(client):
+    _register_user(client, "user_elements@test.com")
+    token = _login_token(client, "user_elements@test.com")
+
+    resp = client.get("/admin/elements", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_admin_rules_requires_auth(client):
+    resp = client.get("/admin/rules")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_admin_rules_forbidden_without_permission(client):
+    _register_user(client, "user_rules@test.com")
+    token = _login_token(client, "user_rules@test.com")
+
+    resp = client.get("/admin/rules", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_admin_user_roles_requires_auth(client):
+    resp = client.get("/admin/users/1/roles")
+    assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_admin_user_roles_forbidden_without_permission(client):
+    _register_user(client, "user_roles@test.com")
+    token = _login_token(client, "user_roles@test.com")
+
+    resp = client.get("/admin/users/1/roles", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_admin_get_role_not_found_returns_404(client, db_session):
+    admin = _register_user(client, "admin_missing_role@test.com")
+    _grant_admin_permissions(db_session, admin["id"])
+    token = _login_token(client, "admin_missing_role@test.com")
+
+    resp = client.get("/admin/roles/9999", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_admin_get_element_not_found_returns_404(client, db_session):
+    admin = _register_user(client, "admin_missing_element@test.com")
+    _grant_admin_permissions(db_session, admin["id"])
+    token = _login_token(client, "admin_missing_element@test.com")
+
+    resp = client.get("/admin/elements/9999", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_admin_get_rule_not_found_returns_404(client, db_session):
+    admin = _register_user(client, "admin_missing_rule@test.com")
+    _grant_admin_permissions(db_session, admin["id"])
+    token = _login_token(client, "admin_missing_rule@test.com")
+
+    resp = client.get("/admin/rules/9999", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_admin_user_roles_user_not_found_returns_404(client, db_session):
+    admin = _register_user(client, "admin_missing_user@test.com")
+    _grant_admin_permissions(db_session, admin["id"])
+    token = _login_token(client, "admin_missing_user@test.com")
+
+    resp = client.get("/admin/users/9999/roles", headers=_auth_headers(token))
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
 def test_admin_roles_crud_as_admin(client, db_session):

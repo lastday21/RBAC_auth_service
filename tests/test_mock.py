@@ -99,6 +99,38 @@ def test_mock_products_with_token_but_no_rules_returns_403(client):
     assert response.json()["detail"] == "forbidden"
 
 
+def test_mock_orders_requires_authentication(client):
+    response = client.get("/mock/orders")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "not authenticated"
+
+
+def test_mock_orders_with_token_but_no_rules_returns_403(client):
+    _, auth_headers = register_user_and_get_auth_headers(
+        client, "no_rules_orders@test.com"
+    )
+
+    response = client.get("/mock/orders", headers=auth_headers)
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == "forbidden"
+
+
+def test_mock_orders_read_all_returns_all_items(client):
+    user_id, auth_headers = register_user_and_get_auth_headers(
+        client, "orders_admin@test.com"
+    )
+
+    grant_access_rule(user_id, "admin", "orders", read_all_permission=True)
+
+    response = client.get("/mock/orders", headers=auth_headers)
+
+    assert response.status_code == 200
+    response_data = response.json()
+
+    assert len(response_data) == 3
+
+
 def test_mock_products_read_own_returns_only_own_items(client):
     user_id, auth_headers = register_user_and_get_auth_headers(client, "user1@test.com")
 
