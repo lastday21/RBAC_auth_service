@@ -8,6 +8,13 @@ from app.models.user import User
 from app.schemas.mock_schema import OrderOut, ProductOut, ProductPatch
 
 mock_router = APIRouter(prefix="/mock", tags=["mock"])
+_PRODUCTS: dict[int, list[dict]] = {}
+
+
+def _get_products_for_user(user_id: int) -> list[dict]:
+    if user_id not in _PRODUCTS:
+        _PRODUCTS[user_id] = _build_products(user_id)
+    return _PRODUCTS[user_id]
 
 
 def _build_products(current_user_id: int) -> list[dict]:
@@ -33,7 +40,7 @@ def list_products(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    items = _build_products(user.id)
+    items = _get_products_for_user(user.id)
 
     if has_all_permission(db, user, "products", "read"):
         return items
@@ -56,7 +63,7 @@ def patch_product(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    items = _build_products(user.id)
+    items = _get_products_for_user(user.id)
 
     found_item = None
     for item in items:
