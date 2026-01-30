@@ -10,12 +10,12 @@ from app.models.user import User
 from app.models.user_role import UserRole
 
 
-ADMIN_EMAIL = "admin@mail.ru"
-ADMIN_PASSWORD = "admin123"
+ADMIN_EMAIL = "admin"
+ADMIN_PASSWORD = "123"
 ADMIN_FULL_NAME = "Admin"
 
-USER_EMAIL = "user@mail.ru"
-USER_PASSWORD = "user123"
+USER_EMAIL = "user"
+USER_PASSWORD = "123"
 USER_FULL_NAME = "User"
 
 
