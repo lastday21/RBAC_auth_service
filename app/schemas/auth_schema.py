@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class RegisterRequest(BaseModel):
-    full_name: str | None = None
+    full_name: str = Field(min_length=1)
     email: str = Field(min_length=3)
     password: str = Field(min_length=1)
     password_confirm: str = Field(min_length=1)
